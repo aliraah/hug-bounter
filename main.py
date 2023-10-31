@@ -2,6 +2,7 @@ import requests
 import streamlit as st
 
 
+#------------BACKGROUND IMAGE------------#
 page_bg_img = '''
 <style>
 .stApp {
@@ -12,6 +13,18 @@ background-repeat: no-repeat;
 </style>
 '''
 st.markdown(page_bg_img, unsafe_allow_html=True)
+
+
+#------------HIDE STREAMLIT STYLE------------#
+hide_st_style = """
+<style>
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+</style>
+"""
+st.markdown(hide_st_style, unsafe_allow_html=True)
+
 
 st.title("Hug Bounty")
 
@@ -24,14 +37,13 @@ option = st.sidebar.selectbox("Platforms: ", ("Please select a platform" ,"Hacke
 
 
 def remove_html_tags(text):
-	"""Remove html tags from a string"""
+	"""REMOVE HTML TAGS FROM A STRING"""
 	import re
 	clean = re.compile('<.*?>')
 	return re.sub(clean, '', text)
 
 
-### HACKERONE ###
-
+#------------HACKERONE OPTION------------#
 if option == 'Hacker1':
 	home_text = ''
 	st.header(option + " Programs:")
@@ -92,8 +104,7 @@ if option == 'Hacker1':
 		st.divider()
 
 
-### BUGCROWD ###		
-
+#------------BUGCROWD OPTION------------#	
 if option == 'Bugcrowd':
 	home_text = ''
 	st.header(option + " Programs:")
@@ -160,8 +171,7 @@ if option == 'Bugcrowd':
 		st.divider()
 
 
-### INTIGRITY ###
-
+#------------INTIGRITI OPTION------------#
 if option == 'Intigrity':
 	home_text = ''
 	st.header(option + " Programs:")
@@ -217,8 +227,7 @@ if option == 'Intigrity':
 		st.divider()
 
 
-### YESWEHACK ###
-
+#------------YESWEHACK OPTION------------#
 if option == 'YesWeHack':
 	home_text = ''
 	st.header(option + " Programs:")
