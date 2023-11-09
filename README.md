@@ -10,7 +10,7 @@ You can choose 1 of 4 available platforms, update records into the latest versio
 
 You can also choose to drop the database and its records completely.
 
-Usage:
+<h3>Usage:</h3>
 
 Create a '.env' file in the same directory and put your data.space database key in there as below:
 DETA_KEY=<INPUT YOUR DATA KEY HERE>
