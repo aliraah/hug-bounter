@@ -1,3 +1,5 @@
+<h1>Hug Bounter</h1>
+
 Changed name to "Hug Bounter"
 
 Hug Bounter now stores data in its own database instead of retrieving info from source and parsing it on each request separately (unlike the legacy ver).
