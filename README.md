@@ -13,7 +13,8 @@ You can also choose to drop the database and its records completely.
 <h3>Usage:</h3>
 
 Create a '.env' file in the same directory and put your data.space database key in there as below:
-DETA_KEY=<INPUT YOUR DATA KEY HERE>
+
+<code>DETA_KEY=<INPUT YOUR DATA KEY HERE></code>
 
 You should be ready to go now.
 
