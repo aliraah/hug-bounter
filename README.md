@@ -4,7 +4,7 @@ Hug Bounter now stores data in its own database instead of retrieving info from 
 
 Integrated NoSQL database on deta.space
 
-You can choose 1 of 4 available platforms, update records into the latest version and then retrieve from database.
+You can choose 1 of 4 available platforms, update records into the latest version and then retrieve from database. (Unfortuantely due to deta base query rate limits, some big queries from HackerOne or Bugcrowd might not be returned fully) 
 
 You can also choose to drop the database and its records completely.
 
