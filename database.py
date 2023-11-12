@@ -1,163 +1,179 @@
 import os
 from dotenv import load_dotenv
-from deta import Deta
+import streamlit as st
+from pymongo import MongoClient
+from pandas import DataFrame
 import requests
+import datetime
 
-#--Load the environment variables--#
 load_dotenv(".env")
-DETA_KEY = os.getenv("DETA_KEY")
+CONNECTION_STRING = os.getenv("CONNECTION_STRING")
 
-#---Initialize with project key---#
-deta = Deta(DETA_KEY)
+def get_database():
+ 
+   # Provide the mongodb atlas url to connect python to mongodb using pymongo
+   #CONNECTION_STRING = ""
+ 
+   # Create a connection using MongoClient. You can import MongoClient or use pymongo.MongoClient
+   client = MongoClient(CONNECTION_STRING)
+ 
+   # Create the database for our example (we will use the same database throughout the tutorial
+   return client['hug-bounty']
+  
 
-#---This how to connect to or create a database---#
-db = deta.Base("Hunt-DB")
+def collection_count(collection):
+   dbname = get_database()
+   collection = dbname[f'{collection}']
+   
+   entries = collection.find({})
+   empty_list = []
+   
+   for i in entries:
+       empty_list.append(1)
+   return(len(empty_list))
+
+@st.cache_data
+def read_collection(collection):
+    dbname = get_database()
+
+    entries = []
+
+    if collection == 'HackerOne':
+        collection = dbname['HackerOne']
+        for i in collection.find({}):
+            data_dict = {}
+            data_dict['Platform'] = i['platform']
+            data_dict['Title'] = i['title']
+            data_dict['Scope'] = i['scope']
+            try:
+               data_dict['Last Update'] = i['Last Update']
+            except:
+               pass
+            entries.append(data_dict)
+
+        df = DataFrame(entries)
+        return(df)
+        
+    else:
+        collection = dbname[f'{collection}']
+        for i in collection.find({}):
+            data_dict = {}
+            data_dict['platform'] = i['platform']
+            data_dict['title'] = i['title']
+            data_dict['description'] = i['description']
+            data_dict['scope'] = i['scope']
+            try:
+               data_dict['Last Update'] = i['Last Update']
+            except:
+               pass
+            entries.append(data_dict)
+
+    df = DataFrame(entries)
+    return(df)
+
+
+def read_programs(collection):
+   dbname = get_database()
+   collection = dbname[f'{collection}']
+
+   programs = []
+
+   for i in collection.find({}):
+      programs.append(i['title'])
+
+   return(programs)
+
+
+def convert_df(df):
+   return df.to_csv(index=False).encode('utf-8')
+
+
+def update_collection(collection):
+   dbname = get_database()
+   
+   now = datetime.datetime.now()
+
+   if collection == 'YesWeHack':
+      collection = dbname['YesWeHack']
+
+      url = 'https://raw.githubusercontent.com/Osb0rn3/bugbounty-targets/main/programs/yeswehack.json'
+      r = requests.get(url)
+      data = r.json()
+
+      for i in data:
+         collection.update_many({"title":i["title"]},{"$set": {"scope":i["scopes"], "description":i["business_unit"]["description"], "Last Update":now}})
+
+   elif collection == 'Intigriti':
+      collection = dbname['Intigriti']
+
+      url = 'https://raw.githubusercontent.com/Osb0rn3/bugbounty-targets/main/programs/intigriti.json'
+      r = requests.get(url)
+      data = r.json()
+
+      for i in data:
+         collection.update_many({"title":i["name"]},{"$set": {"scope":i["domains"], "description":i["description"], "Last Update":now}})
+
+   elif collection == 'Bugcrowd':
+      collection = dbname['Bugcrowd']
+
+      url = 'https://raw.githubusercontent.com/Osb0rn3/bugbounty-targets/main/programs/bugcrowd.json'
+      r = requests.get(url)
+      data = r.json()
+
+      for i in data:
+         collection.update_many({"title":i["name"]},{"$set": {"scope":i["target_groups"], "description":i["tagline"], "Last Update":now}})
+
+   elif collection == 'HackerOne':
+      collection = dbname['HackerOne']
+
+      url = 'https://raw.githubusercontent.com/Osb0rn3/bugbounty-targets/main/programs/hackerone.json'
+      r = requests.get(url)
+      data = r.json()
+
+      for i in data:
+         collection.update_many({"title":i["attributes"]["name"]},{"$set": {"scope":i["relationships"]["structured_scopes"], "Last Update":now}})
 
 
 
-def fetch_all_records():
-	#---Returns a dict of all data---#
-	res = db.fetch()
-	return res.items
+def manual_update(platform, title, description, scope):
+    dbname = get_database()
+    collection = dbname[f'{platform}']
+    now = datetime.datetime.now()
 
+    data_dict = {}
+    data_dict['platform'] = platform.lower()
+    data_dict['title'] = title
+    data_dict['description'] = description
 
-def delete_all_records():
-    response = db.fetch(query={})  #---Fetch all documents---#
+    # -- Get scope value as string and turn it into an object to be displayable along with other results -- #
+    scope = scope.split(',')
+    scope_as_list = []
+    count = 0
+    for i in scope:
+      data_dict2 = {}
+      data_dict2[str(count)] = i
+      count+=1
+      scope_as_list.append(data_dict2)
 
-    #---Delete each document---#
-    for item in response.items:
-        db.delete(item['key'])
-
-
-
-def update_yeswehack():
-    #---Get data from github and parse with json---# 
-    url = "https://raw.githubusercontent.com/Osb0rn3/bugbounty-targets/main/programs/yeswehack.json"
-    r = requests.get(url)
-    data = r.json()
-
-    data_list = []
+    data_dict['scope'] = scope_as_list
+    data_dict['Last Update'] = now
     
-    for i in data:
-        #---Put desired data from the json file into the data_list---#
-        data_dict = {}
-        data_dict['platform'] = "YesWeHack"
-        data_dict['title'] = i['title']
-        data_dict['description'] = i['business_unit']['description']
-        data_dict['scope'] = i['scopes']
-        #data_dict['scope_count'] = i['scopes_count']
-        #data_dict['reports_count'] = i['reports_count']
-        #data_dict['min_bounty'] = i['bounty_reward_min']
-        #data_dict['max_bounty'] = i['bounty_reward_max']
-        #data_dict['currency'] = i['business_unit']['currency']
-        data_list.append(data_dict)
+    collection.insert_one(data_dict)
 
-    #---Insert each item on data_list into the DB---#
-    for item in data_list:
-        db.put({
-            'platform': item['platform'],
-            'key': item['title'],
-            'description': item['description'],
-            'scope': item['scope']
-            #'scope_count': item['scope_count'],
-            #'reports_count': item['reports_count'],
-            #'min_bounty': item['min_bounty'],
-            #'max_bounty': item['max_bounty'],
-            #'currency': item['currency']
-        })
 
-def retrieve_yeswehack():
-    #---Define the query to retrieve rows where column('platform') equals target_value('YesWeHack')---#
-    query = {'platform': 'YesWeHack'}
 
-    #---Retrieve matching rows---#
-    response = db.fetch(query=query)
-
-    #--Return the matching rows---#
-    return response.items
-
-def retrieve_intigriti():
-    #---Define the query to retrieve rows where column('platform') equals target_value('Intigriti')---#
-    query = {'platform': 'Intigriti'}
-
-    #---Retrieve matching rows---#
-    response = db.fetch(query=query)
-
-    #--Return the matching rows---#
-    return response.items
-
-def retrieve_bugcrowd():
-    #---Define the query to retrieve rows where column('platform') equals target_value('Bugcrowd')---#
-    query = {'platform': 'Bugcrowd'}
-
-    #---Retrieve matching rows---#
-    response = db.fetch(query=query) 
+def delete_record(collection, title):
+    dbname = get_database()
+    collection = dbname[f'{collection}']
     
-    """
-    Problem:
-    fetch() Retrieves a list of items matching a query. It will retrieve everything if no query is provided, up to a limit of 1 MB or 1000 items.
-    """
+    query = {"title":f"{title}"}
+
+    result = collection.find_one(query)
     
-    #--Return the matching rows---#
-    return response.items
-
-
-def update_intigriti():
-    #---Get data from github and parse with json---# 
-    url = "https://raw.githubusercontent.com/Osb0rn3/bugbounty-targets/main/programs/intigriti.json"
-    r = requests.get(url)
-    data = r.json()
-
-    data_list = []
-    
-    for i in data:
-        #---Put desired data from the json file into the data_list---#
-        data_dict = {}
-        data_dict['platform'] = "Intigriti"
-        data_dict['title'] = i['name']
-        data_dict['description'] = i['description']
-        data_dict['scope'] = i['domains']
-        data_list.append(data_dict)
-
-    #---Insert each item on data_list into the DB---#
-    for item in data_list:
-        db.put({
-            'platform': item['platform'],
-            'key': item['title'],
-            'description': item['description'],
-            'scope': item['scope']
-            #'scope_count': item['scope_count'],
-            #'reports_count': item['reports_count'],
-            #'min_bounty': item['min_bounty'],
-            #'max_bounty': item['max_bounty'],
-            #'currency': item['currency']
-        })
-
-
-def update_bugcrowd():
-    #---Get data from github and parse with json---# 
-    url = "https://raw.githubusercontent.com/Osb0rn3/bugbounty-targets/main/programs/bugcrowd.json"
-    r = requests.get(url)
-    data = r.json()
-
-    data_list = []
-
-    for i in data:
-        #---Put desired data from the json file into the data_list---#
-        data_dict = {}
-        data_dict['platform'] = "Bugcrowd"
-        data_dict['title'] = i['name']
-        data_dict['description'] = i['tagline']
-        data_dict['scope'] = i['target_groups']
-        data_list.append(data_dict)
-    
-    #---Insert each item on data_list into the DB---#
-    for item in data_list:
-        db.put({
-            'platform': item['platform'],
-            'key': item['title'],
-            'description': item['description'],
-            'scope': item['scope']
-        })
-
-
+    if result:
+        collection.delete_one(query)
+        msg = title + ' successfully removed!'
+        st.success(msg)
+    else:
+        err = 'Program not found: ' + title
+        st.error(err)

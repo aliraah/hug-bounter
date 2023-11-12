@@ -1,66 +1,171 @@
-import requests
-import streamlit as st
 import database as db
+import pymongo
+import streamlit as st
+from pandas import DataFrame
+import time
 
-st.title("Hug Bounter")
+st.title('Hug Bounter v2 🕷️')
 
-st.subheader("Integrated with deta space")
-
-st.write("Hug Bounter now stores/reads data in a NoSQL database (deta.space) for better optimization and accessibility.")
-st.write("Happy hunting ;-)")
-
-url = "https://raw.githubusercontent.com/Osb0rn3/bugbounty-targets/main/programs/yeswehack.json"
-r = requests.get(url)
-data = r.json()
-
-#data_list = []
+st.write("Access the latest additions to bug bounty program data available on HackerOne, Bugcrowd, Intigriti, and YesWeHack.")
 
 
-platform = st.selectbox("Select a Platform", ( "Hacker1", "Intigriti", "BugCrowd", "YesWeHack"))
-
-action = st.selectbox("Select Action", ("Retrieve Database", "Update Database"))
-
-button = st.button("Submit")
-
-if button:
-	if platform == "YesWeHack" and action == "Update Database":
-		db.update_yeswehack()
-		st.success("YesWeHack database updated successfully!")
-
-	elif platform == "YesWeHack" and action == "Retrieve Database":
-		db.retrieve_yeswehack()
-		st.success("YesWeHack database retrieved successfully!")
-		st.write(db.retrieve_yeswehack())
-
-	elif platform == "Hacker1" and action == "Update Database":
-		# TODO: Update Hacker1
-		st.success("Updated Hacker1")
-
-	elif platform == "Hacker1" and action == "Retrieve Database":
-		# TODO: Retrieve Hacker1
-		st.success("Hacker1 DB Retrieved")
-
-	elif platform == "BugCrowd" and action == "Update Database":
-		db.update_bugcrowd()
-		st.success("Updated BugCrowd")
-		st.write(db.update_bugcrowd())
-
-	elif platform == "BugCrowd" and action == "Retrieve Database":
-		db.retrieve_bugcrowd()
-		st.success("Bugcrowd database retrieved successfully!")
-		st.write(db.retrieve_bugcrowd())
-
-	elif platform == "Intigriti" and action == "Update Database":
-		db.update_intigriti()
-		st.success("Intigriti database updated successfully!")
-
-	elif platform == "Intigriti" and action == "Retrieve Database":
-		db.retrieve_intigriti()
-		st.success("Intigriti database retrieved successfully!")
-		st.write(db.retrieve_intigriti())
+selected = st.selectbox("Platforms:", ("YesWeHack","Intigriti","Bugcrowd","HackerOne"), index=None, placeholder="Select a platform")
 
 
-del_all = st.button("Delete all records")
-if del_all:
-	db.delete_all_records()
-	st.write("All records were erased.")
+if selected == 'YesWeHack':
+	data = db.read_collection('YesWeHack')
+	st.write(len(data), " records available")
+
+elif selected == 'Intigriti':
+	data = db.read_collection('Intigriti')
+	st.write(len(data), " records available")
+
+elif selected == 'Bugcrowd':
+	data = db.read_collection('Bugcrowd')
+	st.write(len(data), " records available")
+
+elif selected == 'HackerOne':
+	data = db.read_collection('HackerOne')
+	st.write(len(data), " records available")
+
+button = st.button("Show records")
+
+
+if selected =='YesWeHack' and button:
+
+	with st.status("Loading...", expanded=True) as status:
+	    st.write("Connecting to server...")
+	    time.sleep(2)
+	    st.write("Fetching data...")
+	    time.sleep(1)
+	    st.write("Creating data frame...")
+	    time.sleep(1)
+	    status.update(label="All records fetched!", state="complete", expanded=False)
+
+	st.write(data)
+	# -- 'data' (DataFrame) is not a supported download format -- #
+	# -- convert_df func called to turn 'data' into csv format -- #
+	csv = db.convert_df(data)
+	st.download_button(
+	label="Download csv 📄",
+	data=csv,
+	file_name="YesWeHack-Public-Programs",
+	mime="text/csv",
+	)
+
+
+
+elif selected =='Intigriti' and button:
+
+	with st.status("Loading...", expanded=True) as status:
+	    st.write("Connecting to server...")
+	    time.sleep(2)
+	    st.write("Fetching data...")
+	    time.sleep(1)
+	    st.write("Creating data frame...")
+	    time.sleep(1)
+	    status.update(label="All records fetched!", state="complete", expanded=False)
+
+	st.write(data)
+	csv = db.convert_df(data)
+	st.download_button(
+	label="Download csv 📄",
+	data=csv,
+	file_name="Intigriti-Public-Programs",
+	mime="text/csv",
+	)
+
+elif selected =='Bugcrowd' and button:
+
+	with st.status("Loading...", expanded=True) as status:
+	    st.write("Connecting to server...")
+	    time.sleep(2)
+	    st.write("Fetching data...")
+	    time.sleep(1)
+	    st.write("Creating data frame...")
+	    time.sleep(1)
+	    status.update(label="All records fetched!", state="complete", expanded=False)
+
+	st.write(data)
+	csv = db.convert_df(data)
+	st.download_button(
+	label="Download csv 📄",
+	data=csv,
+	file_name="Bugcrowd-Public-Programs",
+	mime="text/csv",
+	)
+
+elif selected =='HackerOne' and button:
+
+	with st.status("Loading...", expanded=True) as status:
+	    st.write("Connecting to server...")
+	    time.sleep(2)
+	    st.write("Fetching data...")
+	    time.sleep(1)
+	    st.write("Creating data frame...")
+	    time.sleep(1)
+	    status.update(label="All records fetched!", state="complete", expanded=False)
+
+	st.write(data)
+	csv = db.convert_df(data)
+	st.download_button(
+	label="Download csv 📄",
+	data=csv,
+	file_name="HackerOne-Public-Programs",
+	mime="text/csv",
+	)
+
+
+st.divider()
+
+operation = st.radio(
+    "Choose operation:",
+    ["Update", "Insert", "Drop"],
+    captions = ["Update database from source for latest scopes & programs", "Update database manually by entering new record(s)", "Manually drop program(s)"], index=None)
+
+if operation == 'Insert':
+	with st.expander("Enter program details"):
+		with st.form("insert_form"):
+			platform = st.selectbox("Platform:", ("YesWeHack", "Intigriti", "Bugcrowd", "HackerOne"), index=None, placeholder="Please select a platform")
+			title = st.text_input("Program name:")
+			description = st.text_input("Description:")
+			scope = st.text_input("Scope:")
+			submitted = st.form_submit_button("Submit")
+
+			if submitted:
+				if platform == None or title == '' or description == '' or scope == '':
+					toast = st.toast('All fields are required!')
+					#time.sleep(5)
+					#toast.empty()
+				else:
+					db.manual_update(platform, title, description, scope)
+					st.success("Record successfully added!")
+					st.cache_data.clear()
+
+if operation == 'Drop':
+	with st.form("Delete form"):
+		selected = st.selectbox("Platform:", ("YesWeHack", "Intigriti", "Bugcrowd", "HackerOne"), index=None, placeholder="Please select a platform")
+		title = st.text_input("Program name:")
+		submitted = st.form_submit_button("Delete")
+		if selected and submitted: 
+			#st.info(db.delete_record(selected, title))
+			db.delete_record(selected, title)
+			#st.warning(str(title) + " removed!")
+			st.cache_data.clear()
+		elif not selected and submitted:
+			toast = st.toast('Please select a platform!')
+			#time.sleep(5)
+			#toast.empty()
+
+if operation == 'Update':
+	with st.form("Update"):
+		selected_to_update = st.selectbox("Platforms:", ("YesWeHack", "Intigriti", "Bugcrowd", "HackerOne"), index=None, placeholder="Please select a platform")
+		submitted = st.form_submit_button("Update")
+		if selected_to_update and submitted:
+			db.update_collection(selected_to_update)
+			st.success(selected_to_update + " database successfully updated!")
+			st.cache_data.clear()
+		elif not selected_to_update and submitted:
+			toast = st.toast('Please select a platform!')
+			#time.sleep(5)
+			#toast.empty()
