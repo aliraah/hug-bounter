@@ -6,8 +6,8 @@ from pandas import DataFrame
 import requests
 import datetime
 
-load_dotenv(".env")
-CONNECTION_STRING = os.getenv("CONNECTION_STRING")
+#load_dotenv(".env")
+#CONNECTION_STRING = os.getenv("CONNECTION_STRING")
 
 def get_database():
  
