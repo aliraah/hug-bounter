@@ -6,7 +6,7 @@ import time
 
 st.title('Hug Bounter v2 🕷️')
 
-st.write("Access the latest additions to bug bounty program data available on HackerOne, Bugcrowd, Intigriti, and YesWeHack.")
+st.write("Be the first to report the bug!")
 
 
 selected = st.selectbox("Platforms:", ("YesWeHack","Intigriti","Bugcrowd","HackerOne"), index=None, placeholder="Select a platform")
