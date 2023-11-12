@@ -16,4 +16,4 @@ CONNECTION_STRING=<INSERT_YOUR_CONNECTION_STRING_HERE>
 
 2. Make sure your IP address is added into you MongoDB cluster under the `Network Access` tab.
 <br>
-Happy bunting ;-)
+Happy bounting ;-)
