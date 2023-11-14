@@ -1,5 +1,5 @@
 # hug-bounter
-Be the first to report the bug!
+Be the first to report the bugs!
 
 Hug Bounter provides you with easy access to latest bug bounty program data available on HackerOne, Bugcrowd, Intigriti, and YesWeHack. 
 
